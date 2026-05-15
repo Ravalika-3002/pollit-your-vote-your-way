@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -21,6 +21,8 @@ function PollDetail() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const nav = useNavigate();
+  const loc = useLocation();
+  const isEditing = loc.pathname.endsWith("/edit");
 
   const pollQ = useQuery({ queryKey: ["poll", id], queryFn: () => fetchPoll(id) });
   const voteQ = useQuery({ queryKey: ["vote", id, user?.id], queryFn: () => fetchUserVote(id, user!.id), enabled: !!user });
@@ -39,6 +41,10 @@ function PollDetail() {
   if (pollQ.isLoading) return <div className="text-muted-foreground">Loading…</div>;
   if (!pollQ.data) return <div className="glass rounded-2xl p-10 text-center">Poll not found or you don't have access.</div>;
   const poll = pollQ.data;
+
+  if (isEditing) {
+    return <Outlet />;
+  }
   const isCreator = user?.id === poll.creator_id;
   const hasVoted = (voteQ.data?.optionIds.length ?? 0) > 0;
   const showResults =
